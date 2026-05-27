@@ -62,7 +62,7 @@
   .roi-period { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 6px; }
   .roi-breakdown { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
   .breakdown-item { background: #f0f7ff; border-radius: 12px; padding: 14px 10px; text-align: center; }
-  .breakdown-value { font-size: 16px; font-weight: 800; color: var(--navy); }
+  .breakdown-value { font-size: 15px; font-weight: 800; color: var(--navy); }
   .breakdown-key { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
   .cta-high { background: linear-gradient(135deg, #00843d, #06D6A0) !important; }
   .cta-mid { background: linear-gradient(135deg, var(--blue), var(--teal)) !important; }
@@ -70,9 +70,32 @@
   .step { display: none; }
   .step.active { display: block; animation: fadeIn 0.4s ease forwards; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-  .trust-bar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 18px; font-size: 12px; color: var(--muted); }
+  .trust-bar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 18px; font-size: 12px; color: var(--muted); flex-wrap: wrap; text-align: center; }
   .trust-dot { width: 3px; height: 3px; background: var(--border); border-radius: 50%; }
   .page-footer { text-align: center; margin-top: 20px; font-size: 12px; color: var(--muted); }
+
+  /* ── Contact Modal ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,22,40,0.6); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; animation: fadeIn 0.25s ease; }
+  .modal-card { background: white; border-radius: 20px; box-shadow: 0 24px 60px rgba(10,22,40,0.25); width: 100%; max-width: 420px; overflow: hidden; }
+  .modal-header { background: linear-gradient(135deg, var(--navy), #0d2145); padding: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-title { color: white; font-size: 18px; font-weight: 700; }
+  .modal-subtitle { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 3px; }
+  .modal-close { background: rgba(255,255,255,0.15); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .modal-close:hover { background: rgba(255,255,255,0.25); }
+  .modal-body { padding: 28px 24px 32px; }
+  .contact-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--teal)); display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 800; color: white; margin: 0 auto 16px; }
+  .contact-name { text-align: center; font-size: 20px; font-weight: 700; color: var(--navy); }
+  .contact-role { text-align: center; font-size: 14px; color: var(--muted); margin-top: 4px; margin-bottom: 24px; }
+  .contact-row { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: 12px; margin-bottom: 12px; text-decoration: none; transition: all 0.2s; }
+  .contact-row:hover { border-color: var(--teal); background: #f0fbff; }
+  .contact-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .icon-phone { background: #e8f9f0; }
+  .icon-email { background: #e8f0ff; }
+  .contact-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .contact-value { font-size: 15px; font-weight: 700; color: var(--navy); margin-top: 2px; }
+  .contact-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.5; }
+  .roi-tag { display: inline-block; background: #f0f7ff; border: 1.5px solid var(--border); border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; color: var(--blue); margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -124,7 +147,7 @@
         <div class="input-group">
           <span class="input-prefix">₹</span>
           <input type="number" id="maintenanceCost" class="input-field"
-            placeholder="e.g. 80,000" min="0" step="5000">
+            placeholder="e.g. 50,000" min="0" step="5000">
         </div>
         <button class="btn-primary" id="nextBtn2" onclick="goToStep(3)" disabled>Next Question →</button>
         <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
@@ -183,11 +206,48 @@
     </div>
 
   </div>
-  <div class="page-footer">Powered by MWIS · Industrial Water Intelligence Solutions</div>
+  <div class="page-footer">Powered by MWIS · Veolia Water Technologies · India</div>
+</div>
+
+<!-- ── Contact Modal ── -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title">Talk to an Expert</div>
+        <div class="modal-subtitle">Get a customised proposal for your operation</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="contact-avatar">B</div>
+      <div class="contact-name">Bhaskar Ray</div>
+      <div class="contact-role">MWIS Solutions Expert · Veolia Water Technologies</div>
+      <div id="roiTagContainer"></div>
+
+      <div style="margin-top:20px;">
+        <a href="tel:+919971795632" class="contact-row">
+          <div class="contact-icon icon-phone">📞</div>
+          <div>
+            <div class="contact-label">Call Directly</div>
+            <div class="contact-value">+91 99717 95632</div>
+          </div>
+        </a>
+        <a href="mailto:bhaskar.ray@veolia.com" class="contact-row">
+          <div class="contact-icon icon-email">✉️</div>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-value">bhaskar.ray@veolia.com</div>
+          </div>
+        </a>
+      </div>
+      <p class="contact-note">Bhaskar will review your estimate and prepare a detailed proposal tailored to your sites and operational profile.</p>
+    </div>
+  </div>
 </div>
 
 <script>
-  var selectedSites=null, selectedMultiplier=null;
+  var selectedSites=null, selectedMultiplier=null, lastROI=0;
   var stepIds=[null,'step1','step2','step3','step4'];
   var stepLabels=['','Step 1 of 4','Step 2 of 4','Step 3 of 4','Your Results'];
   var progress=['0%','10%','40%','65%','100%'];
@@ -222,25 +282,40 @@
     document.getElementById('nextBtn3').disabled=false;
   }
 
-  /* INR formatting: Lakhs and Crores */
+  /* ── INR formatting: Lakhs / Crores ── */
   function formatINR(v){
+    if(v<0) return '₹0';
     if(v>=10000000) return '₹'+(v/10000000).toFixed(2)+' Cr';
     if(v>=100000)   return '₹'+(v/100000).toFixed(2)+' L';
     if(v>=1000)     return '₹'+(v/1000).toFixed(1)+' K';
     return '₹'+Math.round(v);
   }
 
+  /* ── ROI Formula ──
+     Savings    = (monthly_spend × 12 × 20%) − (maintenance × 12)
+     Investment = monthly_spend × 12 × 15%
+     Both scaled by site multiplier
+     Net Gain   = Savings − Investment
+     ROI        = Net Gain / Investment × 100
+  ── */
   function calcROI(){
-    var m=parseFloat(document.getElementById('monthlySpend').value)||0;
-    var maint=parseFloat(document.getElementById('maintenanceCost').value)||0;
-    var mult=selectedMultiplier||1;
-    var annual=(m+maint)*12;
-    var savings=annual*0.20*mult;
-    var invest=m*12*0.06*mult;
-    var net=savings-invest;
-    var roi=invest>0?(net/invest)*100:0;
-    return{savings:savings,investment:invest,netGain:net,roi:Math.max(0,Math.round(roi))};
+    var m   = parseFloat(document.getElementById('monthlySpend').value)||0;
+    var mnt = parseFloat(document.getElementById('maintenanceCost').value)||0;
+    var mult = selectedMultiplier||1;
+
+    var savings    = ((m * 12 * 0.20) - (mnt * 12)) * mult;
+    var investment = m * 12 * 0.15 * mult;
+    var netGain    = savings - investment;
+    var roi        = investment > 0 ? (netGain / investment) * 100 : 0;
+
+    return {
+      savings:    Math.max(0, savings),
+      investment: investment,
+      netGain:    netGain,
+      roi:        Math.max(0, Math.round(roi))
+    };
   }
+
   function animateCount(el,target,dur){
     var start=Date.now();
     var t=setInterval(function(){
@@ -250,32 +325,76 @@
       if(p>=1)clearInterval(t);
     },16);
   }
+
   function calculateAndShow(){
     var r=calcROI();
-    document.getElementById('savingsDisplay').textContent=formatINR(r.savings);
-    document.getElementById('investmentDisplay').textContent=formatINR(r.investment);
-    document.getElementById('netGainDisplay').textContent=formatINR(r.netGain);
+    lastROI=r.roi;
+
+    document.getElementById('savingsDisplay').textContent    = formatINR(r.savings);
+    document.getElementById('investmentDisplay').textContent = formatINR(r.investment);
+    document.getElementById('netGainDisplay').textContent    = formatINR(r.netGain);
+
     var btn=document.getElementById('ctaButton');
     var txt=document.getElementById('ctaText');
     btn.className='btn-primary';
-    if(r.roi>=50){txt.textContent='🚀 Book a Demo — See Full Savings Plan';btn.classList.add('cta-high');btn.dataset.action='demo';}
-    else if(r.roi>=25){txt.textContent='📄 Download Case Study — Detailed ROI Proof';btn.classList.add('cta-mid');btn.dataset.action='case-study';}
-    else{txt.textContent='💬 Talk to an Expert — Customize Your Plan';btn.classList.add('cta-low');btn.dataset.action='expert';}
+
+    /* ── Branching thresholds ──
+       > 30%  → Book Demo
+       15–29% → Download Case Study
+       < 15%  → Talk to Expert (contact modal)
+    ── */
+    if(r.roi > 30){
+      txt.textContent='🚀 Book a Demo — See Full Savings Plan';
+      btn.classList.add('cta-high'); btn.dataset.action='demo';
+    } else if(r.roi >= 15){
+      txt.textContent='📄 Download Case Study — Real-World ROI Proof';
+      btn.classList.add('cta-mid'); btn.dataset.action='case-study';
+    } else {
+      txt.textContent='💬 Talk to an Expert — Get a Custom Plan';
+      btn.classList.add('cta-low'); btn.dataset.action='expert';
+    }
+
     goToStep(4);
     setTimeout(function(){
-      var el=document.getElementById('roiNumber');
-      animateCount(el,r.roi,1200);
+      animateCount(document.getElementById('roiNumber'), r.roi, 1200);
     },800);
   }
+
   function handleCTA(){
     var action=document.getElementById('ctaButton').dataset.action;
     var r=calcROI();
-    var p=new URLSearchParams({monthly_spend:document.getElementById('monthlySpend').value,sites:selectedSites,estimated_roi:r.roi,annual_savings:Math.round(r.savings),currency:'INR',source:'roi_calculator'});
-    // Replace these URLs with your actual links:
-    var urls={'demo':'https://calendly.com/mwis-demo?'+p,'case-study':'https://www.bisinfotech.com/flexible-fast-reliable-mobile-water-solutions-for-microelectronics-manufacturing-by-sara-subramaniam-southeast-asia-sales-leader-for-mobile-water-at-veolia/#respond
-?'+p,'expert':'https://mwis.com/contact?'+p};
-    window.open(urls[action],'_blank');
+    var params=new URLSearchParams({
+      monthly_spend: document.getElementById('monthlySpend').value,
+      sites: selectedSites,
+      estimated_roi: r.roi,
+      annual_savings: Math.round(r.savings),
+      currency: 'INR',
+      source: 'roi_calculator'
+    });
+
+    if(action==='demo'){
+      /* Replace with your Calendly / demo booking URL */
+      window.open('https://calendly.com/mwis-demo?'+params,'_blank');
+    } else if(action==='case-study'){
+      window.open('https://www.bisinfotech.com/flexible-fast-reliable-mobile-water-solutions-for-microelectronics-manufacturing-by-sara-subramaniam-southeast-asia-sales-leader-for-mobile-water-at-veolia/#respond','_blank');
+    } else {
+      openContactModal(r.roi);
+    }
   }
+
+  function openContactModal(roi){
+    var tag=document.getElementById('roiTagContainer');
+    tag.innerHTML='<div style="text-align:center"><span class="roi-tag">Your estimated ROI: '+roi+'% · Let\'s improve it</span></div>';
+    document.getElementById('contactModal').classList.add('open');
+  }
+  function closeModal(){
+    document.getElementById('contactModal').classList.remove('open');
+  }
+  /* Close modal on overlay click */
+  document.getElementById('contactModal').addEventListener('click',function(e){
+    if(e.target===this) closeModal();
+  });
+
   function resetForm(){
     document.getElementById('monthlySpend').value='';
     document.getElementById('maintenanceCost').value='';
