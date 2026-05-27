@@ -272,7 +272,8 @@
     var r=calcROI();
     var p=new URLSearchParams({monthly_spend:document.getElementById('monthlySpend').value,sites:selectedSites,estimated_roi:r.roi,annual_savings:Math.round(r.savings),currency:'INR',source:'roi_calculator'});
     // Replace these URLs with your actual links:
-    var urls={'demo':'https://calendly.com/mwis-demo?'+p,'case-study':'https://mwis.com/case-study?'+p,'expert':'https://mwis.com/contact?'+p};
+    var urls={'demo':'https://calendly.com/mwis-demo?'+p,'case-study':'https://www.bisinfotech.com/flexible-fast-reliable-mobile-water-solutions-for-microelectronics-manufacturing-by-sara-subramaniam-southeast-asia-sales-leader-for-mobile-water-at-veolia/#respond
+?'+p,'expert':'https://mwis.com/contact?'+p};
     window.open(urls[action],'_blank');
   }
   function resetForm(){
