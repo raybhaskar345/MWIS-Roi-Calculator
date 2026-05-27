@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWIS ROI Calculator | Water Treatment Savings Estimator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #0A1628; --blue: #0077B6; --teal: #00B4D8;
+    --bg: #F0F7FF; --white: #ffffff; --text: #1a2a3a;
+    --muted: #6b7d8f; --border: #d0e4f0;
+    --shadow: 0 8px 32px rgba(10,22,40,0.12);
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+  .wrapper { width: 100%; max-width: 480px; }
+  .brand-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .brand-name { font-size: 22px; font-weight: 800; color: var(--navy); }
+  .brand-name span { color: var(--teal); }
+  .step-indicator { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 24px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--teal)); border-radius: 2px; transition: width 0.6s ease; width: 0%; }
+  .card { background: var(--white); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+  .video-wrap { position: relative; background: var(--navy); aspect-ratio: 9/16; max-height: 380px; overflow: hidden; }
+  .video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .video-overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(10,22,40,0.85)); padding: 32px 20px 20px; pointer-events: none; }
+  .speaker-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); border-radius: 24px; padding: 6px 14px 6px 6px; }
+  .speaker-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; }
+  .speaker-name { font-size: 13px; font-weight: 600; color: white; }
+  .speaker-title { font-size: 11px; color: rgba(255,255,255,0.7); }
+  .play-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 64px; height: 64px; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; z-index: 10; }
+  .play-btn:hover { background: rgba(255,255,255,0.35); }
+  .play-btn svg { fill: white; margin-left: 4px; }
+  .play-btn.hidden { display: none; }
+  .form-content { padding: 28px 24px 32px; }
+  .question-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin-bottom: 8px; }
+  .question-title { font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1.3; margin-bottom: 6px; }
+  .question-sub { font-size: 14px; color: var(--muted); margin-bottom: 24px; }
+  .input-group { position: relative; margin-bottom: 24px; }
+  .input-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; font-weight: 600; color: var(--blue); }
+  .input-field { width: 100%; padding: 16px 16px 16px 44px; font-size: 20px; font-weight: 600; border: 2px solid var(--border); border-radius: 12px; outline: none; color: var(--navy); transition: border-color 0.2s; background: #f8fafc; }
+  .input-field:focus { border-color: var(--teal); background: white; }
+  .input-field::placeholder { color: #b0bec5; font-weight: 400; font-size: 16px; }
+  .input-hint { font-size: 12px; color: var(--muted); margin-top: -18px; margin-bottom: 24px; }
+  .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .choice-btn { padding: 14px 12px; border: 2px solid var(--border); border-radius: 12px; background: white; cursor: pointer; text-align: center; transition: all 0.2s; font-family: inherit; }
+  .choice-btn:hover { border-color: var(--teal); background: #f0fbff; }
+  .choice-btn.selected { border-color: var(--blue); background: #e8f4ff; }
+  .choice-icon { font-size: 22px; margin-bottom: 4px; }
+  .choice-label { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .choice-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .btn-primary { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--blue), var(--teal)); color: white; font-size: 16px; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,119,182,0.35); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-secondary { width: 100%; padding: 14px; background: transparent; color: var(--blue); font-size: 15px; font-weight: 600; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; margin-top: 10px; font-family: inherit; }
+  .btn-secondary:hover { border-color: var(--blue); background: #f0f7ff; }
+  .roi-display { background: linear-gradient(135deg, var(--navy) 0%, #0d2145 100%); border-radius: 16px; padding: 24px; margin-bottom: 20px; text-align: center; position: relative; overflow: hidden; }
+  .roi-display::before { content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px; background: rgba(0,180,216,0.15); border-radius: 50%; }
+  .roi-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+  .roi-number { font-size: 64px; font-weight: 900; color: var(--teal); line-height: 1; letter-spacing: -2px; }
+  .roi-suffix { font-size: 28px; font-weight: 700; color: var(--teal); }
+  .roi-period { font-size: 14px; color: rgba(255,255,255,0.5); margin-top: 6px; }
+  .roi-breakdown { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .breakdown-item { background: #f0f7ff; border-radius: 12px; padding: 14px 10px; text-align: center; }
+  .breakdown-value { font-size: 16px; font-weight: 800; color: var(--navy); }
+  .breakdown-key { font-size: 11px; color: var(--muted); margin-top: 3px; font-weight: 500; }
+  .cta-high { background: linear-gradient(135deg, #00843d, #06D6A0) !important; }
+  .cta-mid { background: linear-gradient(135deg, var(--blue), var(--teal)) !important; }
+  .cta-low { background: linear-gradient(135deg, #5c6bc0, #7986cb) !important; }
+  .step { display: none; }
+  .step.active { display: block; animation: fadeIn 0.4s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .trust-bar { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 18px; font-size: 12px; color: var(--muted); }
+  .trust-dot { width: 3px; height: 3px; background: var(--border); border-radius: 50%; }
+  .page-footer { text-align: center; margin-top: 20px; font-size: 12px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="brand-header">
+    <div class="brand-name">MW<span>IS</span></div>
+    <div class="step-indicator" id="stepLabel">Step 1 of 4</div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="card">
+
+    <!-- STEP 1: Intro Video -->
+    <div class="step active" id="step1">
+      <div class="video-wrap">
+        <video id="introVideo" playsinline preload="auto"
+          src="https://cdn.gotolstoy.com/content/media/01KSN1NDSDD9S2K1FCWXXK1ZCY"></video>
+        <div class="video-overlay">
+          <div class="speaker-badge">
+            <div class="speaker-avatar">B</div>
+            <div><div class="speaker-name">Bhaskar</div><div class="speaker-title">MWIS Solutions Expert</div></div>
+          </div>
+        </div>
+        <div class="play-btn" id="playBtn" onclick="playIntroVideo()">
+          <svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+      <div class="form-content">
+        <p class="question-title" style="font-size:17px;margin-bottom:6px;">Discover your MWIS savings potential</p>
+        <p class="question-sub">Bhaskar will guide you through a 2-question estimate. Takes under 60 seconds.</p>
+        <button class="btn-primary" onclick="goToStep(2)">▶ Start Free Estimate</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Q1 Monthly Spend -->
+    <div class="step" id="step2">
+      <div class="form-content">
+        <div class="question-label">Question 1 of 2</div>
+        <h2 class="question-title">What's your monthly water treatment spend?</h2>
+        <p class="question-sub">Include chemicals, energy, and external treatment costs.</p>
+        <div class="input-group">
+          <span class="input-prefix">₹</span>
+          <input type="number" id="monthlySpend" class="input-field"
+            placeholder="e.g. 5,00,000" min="10000" step="10000" oninput="validateSpend()">
+        </div>
+        <p class="input-hint">Enter your approximate monthly spend in Indian Rupees (₹)</p>
+        <div class="question-label" style="margin-top:4px;">Average monthly maintenance cost?</div>
+        <p class="question-sub" style="margin-bottom:14px;">Equipment servicing, downtime losses, repair costs.</p>
+        <div class="input-group">
+          <span class="input-prefix">₹</span>
+          <input type="number" id="maintenanceCost" class="input-field"
+            placeholder="e.g. 80,000" min="0" step="5000">
+        </div>
+        <button class="btn-primary" id="nextBtn2" onclick="goToStep(3)" disabled>Next Question →</button>
+        <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Q2 Number of Sites -->
+    <div class="step" id="step3">
+      <div class="form-content">
+        <div class="question-label">Question 2 of 2</div>
+        <h2 class="question-title">How many sites are you operating?</h2>
+        <p class="question-sub">More sites = greater consolidated savings with MWIS.</p>
+        <div class="choice-grid">
+          <button class="choice-btn" onclick="selectSites(this,1,1.0)"><div class="choice-icon">🏭</div><div class="choice-label">1 Site</div><div class="choice-desc">Single facility</div></button>
+          <button class="choice-btn" onclick="selectSites(this,3,1.25)"><div class="choice-icon">🏭🏭</div><div class="choice-label">2–5 Sites</div><div class="choice-desc">Small portfolio</div></button>
+          <button class="choice-btn" onclick="selectSites(this,10,1.55)"><div class="choice-icon">🌐</div><div class="choice-label">6–20 Sites</div><div class="choice-desc">Mid-scale ops</div></button>
+          <button class="choice-btn" onclick="selectSites(this,25,1.85)"><div class="choice-icon">🌍</div><div class="choice-label">20+ Sites</div><div class="choice-desc">Large enterprise</div></button>
+        </div>
+        <button class="btn-primary" id="nextBtn3" onclick="calculateAndShow()" disabled>Calculate My ROI →</button>
+        <button class="btn-secondary" onclick="goToStep(2)">← Back</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: Result -->
+    <div class="step" id="step4">
+      <div class="video-wrap">
+        <video id="resultVideo" playsinline preload="auto"
+          src="https://cdn.gotolstoy.com/content/media/01KSN1N7NNAS6CSJ891JKREDMM"></video>
+        <div class="video-overlay">
+          <div class="speaker-badge">
+            <div class="speaker-avatar">B</div>
+            <div><div class="speaker-name">Bhaskar</div><div class="speaker-title">Your ROI estimate is ready</div></div>
+          </div>
+        </div>
+        <div class="play-btn" id="playBtn2" onclick="playResultVideo()">
+          <svg width="22" height="22" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
+      <div class="form-content">
+        <div class="roi-display">
+          <div class="roi-label">Estimated Year 1 ROI</div>
+          <div><span class="roi-number" id="roiNumber">—</span><span class="roi-suffix">%</span></div>
+          <div class="roi-period">Based on your inputs · Conservative estimate</div>
+        </div>
+        <div class="roi-breakdown">
+          <div class="breakdown-item"><div class="breakdown-value" id="savingsDisplay">—</div><div class="breakdown-key">Annual Savings</div></div>
+          <div class="breakdown-item"><div class="breakdown-value" id="investmentDisplay">—</div><div class="breakdown-key">MWIS Investment</div></div>
+          <div class="breakdown-item"><div class="breakdown-value" id="netGainDisplay">—</div><div class="breakdown-key">Net Gain Yr 1</div></div>
+        </div>
+        <button class="btn-primary" id="ctaButton" onclick="handleCTA()"><span id="ctaText">Loading...</span></button>
+        <button class="btn-secondary" onclick="goToStep(1);resetForm()">Start Over</button>
+        <div class="trust-bar">
+          🔒 No obligation · No account required <span class="trust-dot"></span> Estimate is illustrative
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <div class="page-footer">Powered by MWIS · Industrial Water Intelligence Solutions</div>
+</div>
+
+<script>
+  var selectedSites=null, selectedMultiplier=null;
+  var stepIds=[null,'step1','step2','step3','step4'];
+  var stepLabels=['','Step 1 of 4','Step 2 of 4','Step 3 of 4','Your Results'];
+  var progress=['0%','10%','40%','65%','100%'];
+
+  function goToStep(n){
+    document.querySelectorAll('.step').forEach(function(s){s.classList.remove('active');});
+    document.getElementById(stepIds[n]).classList.add('active');
+    document.getElementById('stepLabel').textContent=stepLabels[n];
+    document.getElementById('progressFill').style.width=progress[n];
+    if(n===4){setTimeout(function(){
+      var v=document.getElementById('resultVideo');
+      var b=document.getElementById('playBtn2');
+      v.play().then(function(){if(b)b.classList.add('hidden');}).catch(function(){});
+    },300);}
+  }
+  function playIntroVideo(){
+    document.getElementById('introVideo').play();
+    document.getElementById('playBtn').classList.add('hidden');
+  }
+  function playResultVideo(){
+    document.getElementById('resultVideo').play();
+    document.getElementById('playBtn2').classList.add('hidden');
+  }
+  function validateSpend(){
+    var v=parseFloat(document.getElementById('monthlySpend').value);
+    document.getElementById('nextBtn2').disabled=!(v>0);
+  }
+  function selectSites(el,count,mult){
+    document.querySelectorAll('.choice-btn').forEach(function(b){b.classList.remove('selected');});
+    el.classList.add('selected');
+    selectedSites=count; selectedMultiplier=mult;
+    document.getElementById('nextBtn3').disabled=false;
+  }
+
+  /* INR formatting: Lakhs and Crores */
+  function formatINR(v){
+    if(v>=10000000) return '₹'+(v/10000000).toFixed(2)+' Cr';
+    if(v>=100000)   return '₹'+(v/100000).toFixed(2)+' L';
+    if(v>=1000)     return '₹'+(v/1000).toFixed(1)+' K';
+    return '₹'+Math.round(v);
+  }
+
+  function calcROI(){
+    var m=parseFloat(document.getElementById('monthlySpend').value)||0;
+    var maint=parseFloat(document.getElementById('maintenanceCost').value)||0;
+    var mult=selectedMultiplier||1;
+    var annual=(m+maint)*12;
+    var savings=annual*0.20*mult;
+    var invest=m*12*0.06*mult;
+    var net=savings-invest;
+    var roi=invest>0?(net/invest)*100:0;
+    return{savings:savings,investment:invest,netGain:net,roi:Math.max(0,Math.round(roi))};
+  }
+  function animateCount(el,target,dur){
+    var start=Date.now();
+    var t=setInterval(function(){
+      var p=Math.min((Date.now()-start)/dur,1);
+      var e=1-Math.pow(1-p,3);
+      el.textContent=Math.round(e*target);
+      if(p>=1)clearInterval(t);
+    },16);
+  }
+  function calculateAndShow(){
+    var r=calcROI();
+    document.getElementById('savingsDisplay').textContent=formatINR(r.savings);
+    document.getElementById('investmentDisplay').textContent=formatINR(r.investment);
+    document.getElementById('netGainDisplay').textContent=formatINR(r.netGain);
+    var btn=document.getElementById('ctaButton');
+    var txt=document.getElementById('ctaText');
+    btn.className='btn-primary';
+    if(r.roi>=50){txt.textContent='🚀 Book a Demo — See Full Savings Plan';btn.classList.add('cta-high');btn.dataset.action='demo';}
+    else if(r.roi>=25){txt.textContent='📄 Download Case Study — Detailed ROI Proof';btn.classList.add('cta-mid');btn.dataset.action='case-study';}
+    else{txt.textContent='💬 Talk to an Expert — Customize Your Plan';btn.classList.add('cta-low');btn.dataset.action='expert';}
+    goToStep(4);
+    setTimeout(function(){
+      var el=document.getElementById('roiNumber');
+      animateCount(el,r.roi,1200);
+    },800);
+  }
+  function handleCTA(){
+    var action=document.getElementById('ctaButton').dataset.action;
+    var r=calcROI();
+    var p=new URLSearchParams({monthly_spend:document.getElementById('monthlySpend').value,sites:selectedSites,estimated_roi:r.roi,annual_savings:Math.round(r.savings),currency:'INR',source:'roi_calculator'});
+    // Replace these URLs with your actual links:
+    var urls={'demo':'https://calendly.com/mwis-demo?'+p,'case-study':'https://mwis.com/case-study?'+p,'expert':'https://mwis.com/contact?'+p};
+    window.open(urls[action],'_blank');
+  }
+  function resetForm(){
+    document.getElementById('monthlySpend').value='';
+    document.getElementById('maintenanceCost').value='';
+    document.querySelectorAll('.choice-btn').forEach(function(b){b.classList.remove('selected');});
+    document.getElementById('nextBtn2').disabled=true;
+    document.getElementById('nextBtn3').disabled=true;
+    selectedSites=null; selectedMultiplier=null;
+  }
+</script>
+</body>
+</html>
